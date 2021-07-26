@@ -1,0 +1,11 @@
+services:
+  mysql:
+     image: mysql:8.0.25
+     environment:
+        MYSQL_ROOT_PASSWORD: lalum
+        MYSQL_DATABASE: test
+     ports:
+       - '3306:3306'
+  python:
+     build: app
+     tty: true
