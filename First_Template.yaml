@@ -139,12 +139,17 @@ Resources:
           echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
   myAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn: GatewayToInternet
     Properties:
+      AvailabilityZones:
+        - "eu-west-1a"
+        - "eu-west-1b"
       VPCZoneIdentifier:
         - Ref: myFirstSubnet
         - Ref: mySecondSubnet
-      MinSize: '0'
+      MinSize: '1'
       MaxSize: '3'
       DesiredCapacity: '2'
       InstanceId: !Ref mySecondInstance
-      TargetGroupARNs: !Ref myTargetGroup
+      TargetGroupARNs:
+        - !Ref myTargetGroup
