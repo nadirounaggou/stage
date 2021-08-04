@@ -1,0 +1,212 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: ""
+Resources:
+    EC2VPC:
+        Type: "AWS::EC2::VPC"
+        Properties:
+            CidrBlock: "172.31.0.0/16"
+            EnableDnsSupport: true
+            EnableDnsHostnames: false
+            InstanceTenancy: "default"
+
+    EC2SecurityGroup:
+        Type: "AWS::EC2::SecurityGroup"
+        Properties:
+            GroupDescription: "Allow http connection"
+            GroupName: "demoStack-myLoadBalancerSG-WQYQU2H6WHWE"
+            VpcId: !Ref EC2VPC
+            SecurityGroupIngress:
+              -
+                CidrIp: "0.0.0.0/0"
+                FromPort: 80
+                IpProtocol: "tcp"
+                ToPort: 80
+            SecurityGroupEgress:
+              -
+                CidrIp: "0.0.0.0/0"
+                IpProtocol: "-1"
+
+    EC2SecurityGroup2:
+        Type: "AWS::EC2::SecurityGroup"
+        Properties:
+            GroupDescription: "Allow http and ssh connection"
+            GroupName: "demoStack-mySecurityGroup-1UUY4TVTLN7Q7"
+            VpcId: !Ref EC2VPC
+            SecurityGroupIngress:
+              -
+                CidrIp: "0.0.0.0/0"
+                FromPort: 80
+                IpProtocol: "tcp"
+                ToPort: 80
+              -
+                CidrIp: "0.0.0.0/0"
+                FromPort: 22
+                IpProtocol: "tcp"
+                ToPort: 22
+            SecurityGroupEgress:
+              -
+                CidrIp: "0.0.0.0/0"
+                IpProtocol: "-1"
+
+    EC2Subnet:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: "eu-west-1a"
+            CidrBlock: "172.31.0.0/20"
+            VpcId: !Ref EC2VPC
+            MapPublicIpOnLaunch: false
+
+    EC2Subnet2:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: "eu-west-1b"
+            CidrBlock: "172.31.32.0/20"
+            VpcId: !Ref EC2VPC
+            MapPublicIpOnLaunch: false
+
+    EC2Instance:
+        Type: "AWS::EC2::Instance"
+        Properties:
+            ImageId: "ami-058b1b7fe545997ae"
+            InstanceType: "t2.micro"
+            Tenancy: "default"
+            SubnetId:
+              Ref: EC2Subnet
+            EbsOptimized: false
+            SecurityGroupIds:
+              - !Ref EC2SecurityGroup2
+            SourceDestCheck: true
+            BlockDeviceMappings:
+              -
+                DeviceName: "/dev/xvda"
+                Ebs:
+                    Encrypted: false
+                    VolumeSize: 8
+                    SnapshotId: "snap-049de0aefa0006007"
+                    VolumeType: "gp2"
+                    DeleteOnTermination: true
+            UserData: "eXVtIHVwZGF0ZSAteQp5dW0gaW5zdGFsbCAteSBodHRwZApzeXN0ZW1jdGwgc3RhcnQgaHR0cGQKc3lzdGVtY3RsIGVuYWJsZSBodHRwZAplY2hvICI8aDE+SGVsbG8gV29ybGQgZnJvbSAkKGhvc3RuYW1lIC1mKTwvaDE+IiA+IC92YXIvd3d3L2h0bWwvaW5kZXguaHRtbAo="
+            HibernationOptions:
+                Configured: false
+            EnclaveOptions:
+                Enabled: false
+
+    EC2Instance2:
+        Type: "AWS::EC2::Instance"
+        Properties:
+            ImageId: "ami-058b1b7fe545997ae"
+            InstanceType: "t2.micro"
+            Tenancy: "default"
+            SubnetId:
+              Ref: EC2Subnet2
+            EbsOptimized: false
+            SecurityGroupIds:
+              - !Ref EC2SecurityGroup2
+            SourceDestCheck: true
+            BlockDeviceMappings:
+              -
+                DeviceName: "/dev/xvda"
+                Ebs:
+                    Encrypted: false
+                    VolumeSize: 8
+                    SnapshotId: "snap-049de0aefa0006007"
+                    VolumeType: "gp2"
+                    DeleteOnTermination: true
+            UserData: "eXVtIHVwZGF0ZSAteQp5dW0gaW5zdGFsbCAteSBodHRwZApzeXN0ZW1jdGwgc3RhcnQgaHR0cGQKc3lzdGVtY3RsIGVuYWJsZSBodHRwZAplY2hvICI8aDE+SGVsbG8gV29ybGQgZnJvbSAkKGhvc3RuYW1lIC1mKTwvaDE+IiA+IC92YXIvd3d3L2h0bWwvaW5kZXguaHRtbAo="
+            HibernationOptions:
+                Configured: false
+            EnclaveOptions:
+                Enabled: false
+
+    EC2InternetGateway:
+        Type: "AWS::EC2::InternetGateway"
+        Properties:
+            Tags:
+              -
+                Key: "stack"
+                Value: "production"
+
+    EC2Route:
+        Type: "AWS::EC2::Route"
+        Properties:
+            DestinationCidrBlock: "0.0.0.0/0"
+            GatewayId: !Ref EC2InternetGateway
+            RouteTableId: !Ref EC2RouteTable
+
+    EC2VPCGatewayAttachment:
+        Type: "AWS::EC2::VPCGatewayAttachment"
+        Properties:
+            InternetGatewayId: !Ref EC2InternetGateway
+            VpcId: !Ref EC2VPC
+
+    ElasticLoadBalancingV2LoadBalancer:
+        Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+        Properties:
+            Name: "demoS-myLoa-1OE291LAWPVDT"
+            Scheme: "internet-facing"
+            Type: "application"
+            Subnets:
+              - !Ref EC2Subnet2
+              - !Ref EC2Subnet
+            SecurityGroups:
+              - !Ref EC2SecurityGroup
+            IpAddressType: "ipv4"
+
+    ElasticLoadBalancingV2Listener:
+        Type: "AWS::ElasticLoadBalancingV2::Listener"
+        Properties:
+            LoadBalancerArn: !Ref ElasticLoadBalancingV2LoadBalancer
+            Port: 80
+            Protocol: "HTTP"
+            DefaultActions:
+              -
+                TargetGroupArn: !Ref ElasticLoadBalancingV2TargetGroup
+                Type: "forward"
+
+    EC2RouteTable:
+        Type: "AWS::EC2::RouteTable"
+        Properties:
+            VpcId: !Ref EC2VPC
+
+    EC2SubnetRouteTableAssociation:
+        Type: "AWS::EC2::SubnetRouteTableAssociation"
+        Properties:
+            RouteTableId: !Ref EC2RouteTable
+            SubnetId: !Ref EC2Subnet
+
+    EC2SubnetRouteTableAssociation2:
+        Type: "AWS::EC2::SubnetRouteTableAssociation"
+        Properties:
+            RouteTableId: !Ref EC2RouteTable
+            SubnetId: !Ref EC2Subnet2
+
+    ElasticLoadBalancingV2TargetGroup:
+        Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+        Properties:
+            HealthCheckIntervalSeconds: 30
+            HealthCheckPath: "/"
+            Port: 80
+            Protocol: "HTTP"
+            HealthCheckPort: "traffic-port"
+            HealthCheckProtocol: "HTTP"
+            HealthCheckTimeoutSeconds: 5
+            UnhealthyThresholdCount: 2
+            TargetType: "instance"
+            Matcher:
+                HttpCode: "200"
+            HealthyThresholdCount: 5
+            VpcId: !Ref EC2VPC
+            Name: "demoS-myTar-1SI9T276E8ZJI"
+            HealthCheckEnabled: true
+            Targets:
+              -
+                Id: !Ref EC2Instance2
+                Port: 80
+              -
+                Id: !Ref EC2Instance
+                Port: 80
+    ImportedBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Retain
