@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: ""
+Resources:
+    IAMRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            RoleName: !Sub "${LambdaFunction}-role-t7jelhnt"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns:
+              - "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+              - "arn:aws:iam::585831369267:policy/service-role/AWSLambdaBasicExecutionRole-c175d81c-a780-457f-a67c-796be85da8d6"
+
+    LambdaFunction:
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            FunctionName: "listTask"
+            Handler: "lambda_function.lambda_handler"
+            Code:
+                S3Bucket: !Sub "awslambda-${AWS::Region}-tasks"
+                S3Key: "/snapshots/585831369267/listTask-66faf353-0583-4534-8e0c-2b41b697fd65"
+                S3ObjectVersion: "e3_4If9UzEjuYrI6h6CCnD10MqitWW7E"
+            MemorySize: 128
+            Role: "arn:aws:iam::585831369267:role/service-role/listTask-role-t7jelhnt"
+            Runtime: "python3.8"
+            Timeout: 3
+            TracingConfig:
+                Mode: "PassThrough"
+
+    LambdaPermission:
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName: !GetAtt LambdaFunction.Arn
+            Principal: "apigateway.amazonaws.com"
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:585831369267:xgpqd8ri7d/*/GET/listall"
+
+    LambdaPermission2:
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName: !GetAtt LambdaFunction.Arn
+            Principal: "apigateway.amazonaws.com"
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:585831369267:${ApiGatewayV2Api}/*/*/todos"
+
+    LambdaPermission3:
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName: !GetAtt LambdaFunction.Arn
+            Principal: "apigateway.amazonaws.com"
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:585831369267:${ApiGatewayV2Api}/*/*/todos/{id}"
+
+    ApiGatewayV2Api:
+        Type: "AWS::ApiGatewayV2::Api"
+        Properties:
+            ApiKeySelectionExpression: "$request.header.x-api-key"
+            ProtocolType: "HTTP"
+            RouteSelectionExpression: "$request.method $request.path"
+            DisableExecuteApiEndpoint: false
+
+    DynamoDBTable:
+        Type: "AWS::DynamoDB::Table"
+        Properties:
+            AttributeDefinitions:
+              -
+                AttributeName: "taskId"
+                AttributeType: "N"
+            TableName: "TODOs"
+            KeySchema:
+              -
+                AttributeName: "taskId"
+                KeyType: "HASH"
+            ProvisionedThroughput:
+                ReadCapacityUnits: 5
+                WriteCapacityUnits: 5
+
+    ApiGatewayV2Stage:
+        Type: "AWS::ApiGatewayV2::Stage"
+        Properties:
+            StageName: "$default"
+            StageVariables: {}
+            ApiId: !Ref ApiGatewayV2Api
+            DeploymentId: "oyr61w"
+            RouteSettings: {}
+            DefaultRouteSettings:
+                DetailedMetricsEnabled: false
+            AutoDeploy: true
+
+    ApiGatewayV2Route:
+        Type: "AWS::ApiGatewayV2::Route"
+        Properties:
+            ApiId: !Ref ApiGatewayV2Api
+            ApiKeyRequired: false
+            AuthorizationType: "NONE"
+            RouteKey: "DELETE /todos/{id}"
+            Target: "integrations/cwneine"
+
+    ApiGatewayV2Route2:
+        Type: "AWS::ApiGatewayV2::Route"
+        Properties:
+            ApiId: !Ref ApiGatewayV2Api
+            ApiKeyRequired: false
+            AuthorizationType: "NONE"
+            RouteKey: "GET /todos"
+            Target: "integrations/cwneine"
+
+    ApiGatewayV2Route3:
+        Type: "AWS::ApiGatewayV2::Route"
+        Properties:
+            ApiId: !Ref ApiGatewayV2Api
+            ApiKeyRequired: false
+            AuthorizationType: "NONE"
+            RouteKey: "POST /todos"
+            Target: "integrations/cwneine"
