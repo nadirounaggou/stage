@@ -54,6 +54,6 @@ res = cfclient.create_distribution(DistributionConfig = distribution_config)
 input("\nPress enter to continue...")
 
 #delete resources
-cfclient.delete_ditribution(Id = res['Distribution']['Id'])
-s3client.delete_object(Bucket = bucket_name, Key = object_key)
-s3client.delete_bucket(Bucket= bucket_name)
+# cfclient.delete_ditribution(Id = res['Distribution']['Id'])
+# s3client.delete_object(Bucket = bucket_name, Key = object_key)
+# s3client.delete_bucket(Bucket= bucket_name)

@@ -1,0 +1,54 @@
+Resources:
+  CloudFrontDistribution:
+    Properties:
+      DistributionConfig:
+        Comment: hello
+        DefaultCacheBehavior:
+          AllowedMethods:
+          - HEAD
+          - GET
+          CachedMethods:
+          - HEAD
+          - GET
+          Compress: false
+          DefaultTTL: 86400
+          ForwardedValues:
+            Cookies:
+              Forward: all
+            QueryString: false
+          MaxTTL: 31536000
+          MinTTL: 1000
+          SmoothStreaming: false
+          TargetOriginId: '1'
+          ViewerProtocolPolicy: allow-all
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        OriginGroups:
+          Quantity: 0
+        Origins:
+        - ConnectionAttempts: 3
+          ConnectionTimeout: 10
+          DomainName: python-sdk-sample-c9492900-7745-42cf-9ba2-cec6ef3d9c10.s3.eu-west-1.amazonaws.com
+          Id: '1'
+          OriginPath: ''
+          S3OriginConfig:
+            OriginAccessIdentity: ''
+        PriceClass: PriceClass_All
+        Restrictions:
+          GeoRestriction:
+            RestrictionType: none
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+          MinimumProtocolVersion: TLSv1
+    Type: AWS::CloudFront::Distribution
+  S3Bucket:
+    Properties:
+      BucketName: python-sdk-sample-c9492900-7745-42cf-9ba2-cec6ef3d9c10
+    Type: AWS::S3::Bucket
+  S3Bucket0ef:
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: python-sdk-sample-57f4d8a4-ee30-4ee0-bb71-d8358266e639
+    Type: AWS::S3::Bucket
